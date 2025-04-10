@@ -1,12 +1,22 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { HeaderComponent } from '@core/layout/header/header.component';
+import { provideIcons } from '@ng-icons/core';
+import { featherAirplay } from '@ng-icons/feather-icons';
+import { heroEye, heroUsers } from '@ng-icons/heroicons/outline';
+import { heroUserCircleSolid } from '@ng-icons/heroicons/solid';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, HeaderComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  viewProviders: [
+    provideIcons({
+      featherAirplay,
+      heroUsers,
+      heroEye,
+      heroUserCircleSolid,
+    }),
+  ],
 })
-export class AppComponent {
-  title = 'sic-public-front';
-}
+export class AppComponent {}

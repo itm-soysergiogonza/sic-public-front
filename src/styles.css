@@ -1,1 +1,89 @@
-/* You can add global styles to this file, and also import other style files */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Montserrat", "sans-serif";
+  --default-font-family: var(--font-display);
+
+  /*Azul Institucional*/
+  --color-primary: var(--color-primary-500);
+  --color-primary-100: #c5daf6;
+  --color-primary-200: #90b5ee;
+  --color-primary-300: #537fcd;
+  --color-primary-400: #284e9c;
+  --color-primary-500: #011c5b;
+  --color-primary-600: #00154e;
+  --color-primary-700: #000f41;
+  --color-primary-800: #000b34;
+  --color-primary-900: #00072b;
+
+  /*Gray*/
+  --color-gray: var(--color-gray-500);
+  --color-gray-100: #f3f3f0;
+  --color-gray-200: #e8e8e1;
+  --color-gray-300: #bbbbb3;
+  --color-gray-400: #777771;
+  --color-gray-500: #1d1d1b;
+  --color-gray-600: #181813;
+  --color-gray-700: #14140d;
+  --color-gray-800: #101008;
+  --color-gray-900: #0d0d05;
+
+  /*Black*/
+  --color-black: var(--color-black-500);
+  --color-black-100: #f2f2f2;
+  --color-black-200: #e5e5e5;
+  --color-black-300: #b2b2b2;
+  --color-black-400: #666666;
+  --color-black-500: #000000;
+
+  /*Success*/
+  --color-success: var(--color-success-500);
+  --color-success-100: #e7f9d0;
+  --color-success-200: #caf3a3;
+  --color-success-300: #9ddb6e;
+  --color-success-400: #6fb746;
+  --color-success-500: #398718;
+  --color-success-600: #287411;
+  --color-success-700: #19610c;
+  --color-success-800: #0e4e07;
+  --color-success-900: #064004;
+
+  /*Info*/
+  --color-info: var(--color-info-500);
+  --color-info-100: #def9fd;
+  --color-info-200: #bef0fb;
+  --color-info-300: #9bdff5;
+  --color-info-400: #7fcaeb;
+  --color-info-500: #56acde;
+  --color-info-600: #3e87be;
+  --color-info-700: #2b669f;
+  --color-info-800: #1b4880;
+  --color-info-900: #10336a;
+
+  /*Warning*/
+  --color-warning: var(--color-warning-500);
+  --color-warning-100: #fbf7c9;
+  --color-warning-200: #f7ee94;
+  --color-warning-300: #e8d95d;
+  --color-warning-400: #d2bf34;
+  --color-warning-500: #b59c00;
+  --color-warning-600: #9b8300;
+  --color-warning-700: #826c00;
+  --color-warning-800: #685500;
+  --color-warning-900: #564500;
+
+  /*Danger*/
+  --color-error: var(--color-error-500);
+  --color-error-100: #ffe5ec;
+  --color-error-200: #ffb3c8;
+  --color-error-300: #ff80a3;
+  --color-error-400: #f94d7e;
+  --color-error-500: #d81b60;
+  --color-error-600: #b0004d;
+  --color-error-700: #8a003d;
+  --color-error-800: #65002d;
+  --color-error-900: #40001c;
+}
