@@ -109,6 +109,11 @@ export class InputFieldComponent {
         return 'bi-calendar';
       case 'EMAIL':
         return 'bi-envelope';
+      case 'NUMBER':
+        return 'bi-123';
+      case 'SELECT_SINGLE':
+      case 'SELECT_MULTIPLE':
+        return 'bi-list';
       default:
         return 'bi-question-circle';
     }
@@ -122,6 +127,8 @@ export class InputFieldComponent {
         return 'date';
       case 'EMAIL':
         return 'email';
+      case 'NUMBER':
+        return 'number';
       default:
         return 'text';
     }

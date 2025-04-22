@@ -4,6 +4,7 @@ import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/f
 import { NgSelectModule } from '@ng-select/ng-select';
 
 export interface SelectOption {
+  id?: number;
   value: any;
   label: string;
 }
@@ -36,6 +37,26 @@ export class SelectInputComponent implements ControlValueAccessor {
   isDisabled = false;
   private propagateChange = (_: any) => {};
   private propagateTouch = () => {};
+
+  compareWith = (item: any, selected: any): boolean => {
+    if (item && selected) {
+      // Si el item o selected son objetos con id
+      if (item.id && selected.id) {
+        return item.id === selected.id;
+      }
+      // Si el item tiene value con id y selected tiene id
+      if (item.value?.id && selected.id) {
+        return item.value.id === selected.id;
+      }
+      // Si ambos tienen value con id
+      if (item.value?.id && selected.value?.id) {
+        return item.value.id === selected.value.id;
+      }
+      // Comparación directa
+      return item === selected;
+    }
+    return false;
+  };
 
   writeValue(value: any): void {
     this.selectedValue = value;

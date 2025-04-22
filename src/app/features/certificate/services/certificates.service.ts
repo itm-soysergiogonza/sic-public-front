@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
+import { FieldType } from '../models/form-field.interface';
 
 export interface CertificateType {
   id: number;
@@ -14,15 +15,20 @@ export interface CertificateField {
   id: number;
   name: string;
   label: string;
-  type: string;
+  type: FieldType;
   required: boolean;
-  placeholder: string | null;
-  options: any[] | null;
-  minLength: number | null;
-  maxLength: number | null;
-  minValue: number | null;
-  maxValue: number | null;
+  placeholder?: string;
+  options?: FieldOption[];
+  minLength?: number;
+  maxLength?: number;
+  minValue?: number;
+  maxValue?: number;
   certificateType: CertificateType;
+}
+
+export interface FieldOption {
+  value: string;
+  label: string;
 }
 
 @Injectable({
@@ -33,7 +39,6 @@ export class CertificatesService {
   private _certificateFields = new BehaviorSubject<CertificateField[]>([]);
   private _certificateTypes = new BehaviorSubject<CertificateType[]>([]);
 
-  // Observables para los componentes
   certificateFields$ = this._certificateFields.asObservable();
   certificateTypes$ = this._certificateTypes.asObservable();
 
@@ -43,27 +48,63 @@ export class CertificatesService {
     this.refreshCertificateParameters();
   }
 
+  private mapApiFieldType(type: string): FieldType {
+    switch (type.toUpperCase()) {
+      case 'TEXT':
+        return 'TEXT';
+      case 'EMAIL':
+        return 'EMAIL';
+      case 'SELECT':
+        return 'SELECT_SINGLE';
+      case 'MULTISELECT':
+        return 'SELECT_MULTIPLE';
+      case 'DATE':
+        return 'DATE';
+      case 'DATE_RANGE':
+        return 'DATE_RANGE';
+      case 'NUMBER':
+        return 'NUMBER';
+      default:
+        return 'TEXT';
+    }
+  }
+
+  private transformApiField(field: any): CertificateField {
+    return {
+      ...field,
+      type: this.mapApiFieldType(field.type),
+      placeholder: field.placeholder || undefined,
+      options: field.options || undefined,
+      minLength: field.minLength || undefined,
+      maxLength: field.maxLength || undefined,
+      minValue: field.minValue || undefined,
+      maxValue: field.maxValue || undefined,
+    };
+  }
+
   refreshCertificateTypes(): void {
-    this._http.get<CertificateType[]>(`${this._API_URL}/api/certificate/type`)
-      .pipe(
-        tap(types => this._certificateTypes.next(types))
-      )
+    this._http
+      .get<CertificateType[]>(`${this._API_URL}/api/certificate/type`)
+      .pipe(tap((types) => this._certificateTypes.next(types)))
       .subscribe({
-        error: (error) => console.error('Error fetching certificate types:', error)
+        error: (error) =>
+          console.error('Error fetching certificate types:', error),
       });
   }
 
   refreshCertificateParameters(): void {
-    this._http.get<CertificateField[]>(`${this._API_URL}/api/certificate/parameter`)
+    this._http
+      .get<any[]>(`${this._API_URL}/api/certificate/parameter`)
       .pipe(
-        tap(fields => this._certificateFields.next(fields))
+        map((fields) => fields.map((field) => this.transformApiField(field))),
+        tap((fields) => this._certificateFields.next(fields)),
       )
       .subscribe({
-        error: (error) => console.error('Error fetching certificate parameters:', error)
+        error: (error) =>
+          console.error('Error fetching certificate parameters:', error),
       });
   }
 
-  // Métodos para obtener los valores actuales
   getCertificateTypes(): Observable<CertificateType[]> {
     return this.certificateTypes$;
   }
@@ -72,7 +113,6 @@ export class CertificatesService {
     return this.certificateFields$;
   }
 
-  // Método para forzar una actualización de los datos
   refreshAll(): void {
     this.refreshCertificateTypes();
     this.refreshCertificateParameters();

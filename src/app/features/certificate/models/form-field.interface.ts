@@ -11,7 +11,8 @@ export type FieldType =
   | 'SELECT_SINGLE'
   | 'SELECT_MULTIPLE'
   | 'DATE'
-  | 'DATE_RANGE';
+  | 'DATE_RANGE'
+  | 'NUMBER';
 
 export interface FieldOption {
   value: string;
