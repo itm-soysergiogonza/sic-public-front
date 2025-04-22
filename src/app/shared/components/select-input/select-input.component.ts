@@ -1,6 +1,16 @@
-import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  forwardRef,
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  FormsModule,
+  NG_VALUE_ACCESSOR,
+} from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 
 export interface SelectOption {
@@ -18,9 +28,9 @@ export interface SelectOption {
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => SelectInputComponent),
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
 })
 export class SelectInputComponent implements ControlValueAccessor {
   @Input() label = '';
@@ -40,19 +50,15 @@ export class SelectInputComponent implements ControlValueAccessor {
 
   compareWith = (item: any, selected: any): boolean => {
     if (item && selected) {
-      // Si el item o selected son objetos con id
       if (item.id && selected.id) {
         return item.id === selected.id;
       }
-      // Si el item tiene value con id y selected tiene id
       if (item.value?.id && selected.id) {
         return item.value.id === selected.id;
       }
-      // Si ambos tienen value con id
       if (item.value?.id && selected.value?.id) {
         return item.value.id === selected.value.id;
       }
-      // Comparación directa
       return item === selected;
     }
     return false;
