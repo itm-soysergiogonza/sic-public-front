@@ -33,3 +33,14 @@ export interface CertificateField {
   maxValue?: number;
   certificateType: CertificateType;
 }
+
+export interface CertificateTypeEvent {
+  id?: number;
+  label: string;
+  value: CertificateType;
+}
+
+export type CompareWithCertificateType = (
+  item: CertificateTypeEvent,
+  selected: CertificateType,
+) => boolean;

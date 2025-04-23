@@ -12,7 +12,11 @@ import {
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
-import { SelectOption } from '@shared/models/interfaces/select.interface';
+import {
+  CertificateType,
+  CertificateTypeEvent,
+  CompareWithCertificateType,
+} from '@shared/models/interfaces/form-field.interface';
 
 @Component({
   selector: 'app-select-input',
@@ -29,59 +33,49 @@ import { SelectOption } from '@shared/models/interfaces/select.interface';
 export class SelectInputComponent implements ControlValueAccessor {
   @Input() label = '';
   @Input() placeholder = 'Seleccione una opción';
-  @Input() options: SelectOption[] = [];
+  @Input() options: CertificateTypeEvent[] = [];
   @Input() clearable = false;
   @Input() required = false;
 
-  @Output() selectedChange = new EventEmitter<any>();
-  @Output() opened = new EventEmitter<void>();
-  @Output() closed = new EventEmitter<void>();
+  @Output() selectedChange: EventEmitter<CertificateTypeEvent | null> =
+    new EventEmitter<CertificateTypeEvent | null>();
+  @Output() opened: EventEmitter<void> = new EventEmitter<void>();
+  @Output() closed: EventEmitter<void> = new EventEmitter<void>();
 
-  selectedValue: null = null;
+  selectedValue: null | CertificateTypeEvent = null;
   isDisabled = false;
-  private propagateChange = (_: any) => {};
-  private propagateTouch = () => {};
+  private _propagateChange: (value: CertificateTypeEvent | null) => void =
+    (): void => {};
+  private _propagateTouch: () => void = (): void => {};
 
-  compareWith = (item: any, selected: any): boolean => {
-    if (item && selected) {
-      if (item.id && selected.id) {
-        return item.id === selected.id;
-      }
-      if (item.value?.id && selected.id) {
-        return item.value.id === selected.id;
-      }
-      if (item.value?.id && selected.value?.id) {
-        return item.value.id === selected.value.id;
-      }
-      return item === selected;
-    }
-    return false;
+  compareWith: CompareWithCertificateType = (
+    item: CertificateTypeEvent,
+    selected: CertificateType,
+  ): boolean => {
+    return item?.value?.id === selected?.id;
   };
 
-  writeValue(value: any): void {
-    this.selectedValue = value;
+  writeValue(value: CertificateTypeEvent | null): void {
+    this.selectedValue = value ?? null;
   }
 
-  registerOnChange(fn: any): void {
-    this.propagateChange = fn;
+  registerOnChange(fn: (value: CertificateTypeEvent | null) => void): void {
+    this._propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
-    this.propagateTouch = fn;
+  registerOnTouched(fn: () => void): void {
+    this._propagateTouch = fn;
   }
 
   setDisabledState(isDisabled: boolean): void {
     this.isDisabled = isDisabled;
   }
 
-  onSelectionChange(event: any): void {
+  onSelectionChange(event: CertificateTypeEvent | null): void {
     this.selectedValue = event;
-    this.propagateChange(event);
-    this.propagateTouch();
+    this._propagateChange(event);
+    this._propagateTouch();
     this.selectedChange.emit(event);
-
-    console.log('Selected value:', event);
-    console.log('SelectedValue:', this.selectedValue);
   }
 
   onOpen(): void {
@@ -89,7 +83,7 @@ export class SelectInputComponent implements ControlValueAccessor {
   }
 
   onClose(): void {
-    this.propagateTouch();
+    this._propagateTouch();
     this.closed.emit();
   }
 }

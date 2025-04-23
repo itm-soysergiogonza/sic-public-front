@@ -7,16 +7,16 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import {
-  CertificateField,
-  CertificateType,
-} from '@features/certificate/models/form-field.interface';
 import { CertificatesService } from '@features/certificate/services/certificates.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { InputFieldComponent } from '@shared/components/input-field/input-field.component';
 import { ModalConfirmComponent } from '@shared/components/modal-confirm/modal-confirm.component';
 import { SelectInputComponent } from '@shared/components/select-input/select-input.component';
-import { SelectOption } from '@shared/models/interfaces/select.interface';
+import {
+  CertificateField,
+  CertificateType,
+  CertificateTypeEvent,
+} from '@shared/models/interfaces/form-field.interface';
 import { MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
@@ -47,7 +47,7 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
   certificateForm: FormGroup;
   selectedCertificateType: CertificateType | null = null;
   certificateTypes: CertificateType[] = [];
-  certificateTypesOptions: SelectOption[] = [];
+  certificateTypesOptions: CertificateTypeEvent[] = [];
   certificateFields: CertificateField[] = [];
   filteredFields: CertificateField[] = [];
   isLoading = false;
@@ -65,7 +65,7 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
     this.certificateForm = this._fb.group({});
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this._certificationService
       .getCertificateTypes()
       .pipe(takeUntil(this._destroy$))
@@ -94,25 +94,6 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.errorMessage = 'Error al cargar los tipos de certificados';
           console.error('Error al cargar los tipos de certificados:', error);
-        },
-      });
-
-    this._certificationService
-      .getCertificateParameters()
-      .pipe(takeUntil(this._destroy$))
-      .subscribe({
-        next: (fields: CertificateField[]) => {
-          this.certificateFields = fields;
-
-          if (this.selectedCertificateType) {
-            this._updateFilteredFields();
-          }
-        },
-        error: (error) => {
-          console.error(
-            'Error al cargar los parámetros de certificados:',
-            error,
-          );
         },
       });
   }
@@ -159,9 +140,23 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
     this.certificateForm = this._fb.group(group);
   }
 
-  onCertificateTypeChange(event: SelectOption): void {
-    this.selectedCertificateType = event.value as CertificateType;
-    this._updateFilteredFields();
+  onCertificateTypeChange(event: CertificateTypeEvent | null): void {
+    this.selectedCertificateType = event?.value as CertificateType;
+    this._certificationService
+      .getCertificateParametersByType(this.selectedCertificateType.id)
+      .pipe(takeUntil(this._destroy$))
+      .subscribe({
+        next: (fields: CertificateField[]) => {
+          this.certificateFields = fields;
+          this._updateFilteredFields();
+        },
+        error: (error) => {
+          console.error(
+            'Error al cargar los parámetros del certificado:',
+            error,
+          );
+        },
+      });
   }
 
   onCertificateTypeSelectOpen(): void {
