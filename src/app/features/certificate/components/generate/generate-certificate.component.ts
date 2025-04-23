@@ -10,14 +10,18 @@ import {
 import {
   CertificateField,
   CertificateType,
-  CertificatesService,
-} from '@features/certificate/services/certificates.service';
+} from '@features/certificate/models/form-field.interface';
+import { CertificatesService } from '@features/certificate/services/certificates.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { InputFieldComponent } from '@shared/components/input-field/input-field.component';
-import {
-  SelectInputComponent,
-  SelectOption,
-} from '@shared/components/select-input/select-input.component';
+import { ModalConfirmComponent } from '@shared/components/modal-confirm/modal-confirm.component';
+import { SelectInputComponent } from '@shared/components/select-input/select-input.component';
+import { SelectOption } from '@shared/models/interfaces/select.interface';
+import { MessageService } from 'primeng/api';
+import { AvatarModule } from 'primeng/avatar';
+import { ButtonModule } from 'primeng/button';
+import { RippleModule } from 'primeng/ripple';
+import { ToastModule } from 'primeng/toast';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -30,7 +34,13 @@ import { Subject, takeUntil } from 'rxjs';
     NgSelectModule,
     InputFieldComponent,
     SelectInputComponent,
+    ModalConfirmComponent,
+    ToastModule,
+    ButtonModule,
+    RippleModule,
+    AvatarModule,
   ],
+  providers: [MessageService],
   templateUrl: './generate-certificate.component.html',
 })
 export class GenerateCertificateComponent implements OnInit, OnDestroy {
@@ -42,8 +52,11 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
   filteredFields: CertificateField[] = [];
   isLoading = false;
   errorMessage: string | null = null;
+  showModal = false;
 
-  private destroy$ = new Subject<void>();
+  email = 'john.connor@itm.edu.co';
+
+  private _destroy$ = new Subject<void>();
 
   constructor(
     private _fb: FormBuilder,
@@ -55,7 +68,7 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this._certificationService
       .getCertificateTypes()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (types: CertificateType[]) => {
           this.certificateTypes = types;
@@ -86,13 +99,13 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
 
     this._certificationService
       .getCertificateParameters()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (fields: CertificateField[]) => {
           this.certificateFields = fields;
 
           if (this.selectedCertificateType) {
-            this.updateFilteredFields();
+            this._updateFilteredFields();
           }
         },
         error: (error) => {
@@ -105,11 +118,11 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this._destroy$.next();
+    this._destroy$.complete();
   }
 
-  private updateFilteredFields() {
+  private _updateFilteredFields() {
     if (!this.selectedCertificateType) return;
 
     this.filteredFields = this.certificateFields.filter(
@@ -144,18 +157,11 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
     }
 
     this.certificateForm = this._fb.group(group);
-    console.log('Form updated with new structure:', this.certificateForm.value);
   }
 
   onCertificateTypeChange(event: SelectOption): void {
     this.selectedCertificateType = event.value as CertificateType;
-    this.updateFilteredFields();
-
-    console.log('Selected Certificate Type:', {
-      id: this.selectedCertificateType.id,
-      name: this.selectedCertificateType.name,
-    });
-    console.log('Fields for this certificate type:', this.filteredFields);
+    this._updateFilteredFields();
   }
 
   onCertificateTypeSelectOpen(): void {
@@ -163,14 +169,13 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.certificateForm.valid) {
-      console.log('Form submitted:', this.certificateForm.value);
-    } else {
-      console.log('Form is invalid');
+    if (!this.certificateForm.valid) {
       for (const key of Object.keys(this.certificateForm.controls)) {
         const control = this.certificateForm.get(key);
         control?.markAsTouched();
       }
+    } else {
+      this.showModal = true;
     }
   }
 }

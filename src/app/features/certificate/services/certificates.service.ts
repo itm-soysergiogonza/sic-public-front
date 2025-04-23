@@ -1,35 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
+import {
+  CertificateField,
+  CertificateType,
+} from '@features/certificate/models/form-field.interface';
 import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { FieldType } from '../models/form-field.interface';
-
-export interface CertificateType {
-  id: number;
-  name: string;
-  paid: boolean;
-  price: number;
-}
-
-export interface CertificateField {
-  id: number;
-  name: string;
-  label: string;
-  type: FieldType;
-  required: boolean;
-  placeholder?: string;
-  options?: FieldOption[];
-  minLength?: number;
-  maxLength?: number;
-  minValue?: number;
-  maxValue?: number;
-  certificateType: CertificateType;
-}
-
-export interface FieldOption {
-  value: string;
-  label: string;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -43,12 +20,11 @@ export class CertificatesService {
   certificateTypes$ = this._certificateTypes.asObservable();
 
   constructor(private _http: HttpClient) {
-    // Cargar datos iniciales
     this.refreshCertificateTypes();
     this.refreshCertificateParameters();
   }
 
-  private mapApiFieldType(type: string): FieldType {
+  private _mapApiFieldType(type: string): FieldType {
     switch (type.toUpperCase()) {
       case 'TEXT':
         return 'TEXT';
@@ -69,10 +45,10 @@ export class CertificatesService {
     }
   }
 
-  private transformApiField(field: any): CertificateField {
+  private _transformApiField(field: any): CertificateField {
     return {
       ...field,
-      type: this.mapApiFieldType(field.type),
+      type: this._mapApiFieldType(field.type),
       placeholder: field.placeholder || undefined,
       options: field.options || undefined,
       minLength: field.minLength || undefined,
@@ -94,10 +70,16 @@ export class CertificatesService {
 
   refreshCertificateParameters(): void {
     this._http
-      .get<any[]>(`${this._API_URL}/api/certificate/parameter`)
+      .get<CertificateType[]>(`${this._API_URL}/api/certificate/parameter`)
       .pipe(
-        map((fields) => fields.map((field) => this.transformApiField(field))),
-        tap((fields) => this._certificateFields.next(fields)),
+        map((fields: CertificateType[]) =>
+          fields.map((field: CertificateType) =>
+            this._transformApiField(field),
+          ),
+        ),
+        tap((fields: CertificateField[]) =>
+          this._certificateFields.next(fields),
+        ),
       )
       .subscribe({
         error: (error) =>
@@ -111,10 +93,5 @@ export class CertificatesService {
 
   getCertificateParameters(): Observable<CertificateField[]> {
     return this.certificateFields$;
-  }
-
-  refreshAll(): void {
-    this.refreshCertificateTypes();
-    this.refreshCertificateParameters();
   }
 }

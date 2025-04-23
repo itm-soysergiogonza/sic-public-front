@@ -1,28 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { FormField } from '@features/certificate/models/form-field.interface';
+import { CertificateField } from '@features/certificate/models/form-field.interface';
 import { NgSelectModule } from '@ng-select/ng-select';
-
-// export interface CertificateField {
-//   id: number;
-//   name: string;
-//   label: string;
-//   type: string;
-//   required: boolean;
-//   placeholder: string | null;
-//   options: any[] | null;
-//   minLength: number | null;
-//   maxLength: number | null;
-//   minValue: number | null;
-//   maxValue: number | null;
-//   certificateType: {
-//     id: number;
-//     name: string;
-//     paid: boolean;
-//     price: number;
-//   };
-// }
 
 @Component({
   selector: 'app-input-field',
@@ -97,7 +77,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
   ],
 })
 export class InputFieldComponent {
-  @Input() field!: FormField;
+  @Input() field!: CertificateField;
   @Input() formGroup!: FormGroup;
 
   getFieldIconClass(): string {

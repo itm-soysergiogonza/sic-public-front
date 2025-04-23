@@ -1,4 +1,28 @@
-<div class="container mx-auto p-4">
+<div class="container mx-auto">
+  <p-toast position="bottom-center" key="confirm" [baseZIndex]="5000">
+    <ng-template let-message pTemplate="message">
+      <div class="w-full max-w-md bg-white rounded-lg shadow-lg border-l-4 border-green-500 overflow-hidden animate-fade-in-up">
+        <div class="p-4">
+          <div class="flex items-start space-x-4">
+            <div class="flex-shrink-0">
+              <div class="p-2 rounded-full">
+                <i class="bi bi-check-circle text-xl text-green-600"></i>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-lg font-semibold text-gray-900">
+                {{ message.summary }}
+              </p>
+              <p class="mt-1 text-sm text-gray-500">
+                {{ message.detail }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </p-toast>
+
   <div class="max-w-lg mx-auto bg-white rounded-lg shadow-lg p-8">
     <h2 class="text-2xl font-bold mb-8 text-center" style="color: var(--color-primary)">Generar Certificado</h2>
 
@@ -64,8 +88,7 @@
         <button type="submit"
                 [disabled]="!certificateForm.valid || !selectedCertificateType"
                 class="w-full py-3 px-4 rounded-md text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
-                [style.background-color]="'var(--color-primary)'"
-                [style.hover.background-color]="'var(--color-primary-600)'">
+                [style.background-color]="'var(--color-primary)'">
           <i class="bi bi-file-earmark-pdf mr-2"></i>
           Generar Certificado
         </button>
@@ -74,13 +97,9 @@
   </div>
 </div>
 
-<style>
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .animate-fadeIn {
-    animation: fadeIn 0.5s ease-out forwards;
-  }
-</style>
+<app-modal-confirm
+  [isOpen]="showModal"
+  [title]="'Confirmar Generación'"
+  [email]="email"
+>
+</app-modal-confirm>

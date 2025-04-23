@@ -19,7 +19,7 @@ export interface FieldOption {
   label: string;
 }
 
-export interface FormField {
+export interface CertificateField {
   id: number;
   name: string;
   label: string;

@@ -12,16 +12,10 @@ import {
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
-
-export interface SelectOption {
-  id?: number;
-  value: any;
-  label: string;
-}
+import { SelectOption } from '@shared/models/interfaces/select.interface';
 
 @Component({
   selector: 'app-select-input',
-  standalone: true,
   imports: [CommonModule, FormsModule, NgSelectModule],
   templateUrl: './select-input.component.html',
   providers: [
@@ -43,7 +37,7 @@ export class SelectInputComponent implements ControlValueAccessor {
   @Output() opened = new EventEmitter<void>();
   @Output() closed = new EventEmitter<void>();
 
-  selectedValue: any = null;
+  selectedValue: null = null;
   isDisabled = false;
   private propagateChange = (_: any) => {};
   private propagateTouch = () => {};
@@ -85,6 +79,9 @@ export class SelectInputComponent implements ControlValueAccessor {
     this.propagateChange(event);
     this.propagateTouch();
     this.selectedChange.emit(event);
+
+    console.log('Selected value:', event);
+    console.log('SelectedValue:', this.selectedValue);
   }
 
   onOpen(): void {
