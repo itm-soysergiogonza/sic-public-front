@@ -114,7 +114,6 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
   private buildForm(fields: CertificateField[]) {
     const group: Record<string, any> = {};
     fields.forEach((f) => {
-      // … tu creación de controles (igual que antes)
       group[f.name] = this._fb.control(
         f.type === "SELECT_MULTIPLE" ? [] : null,
         this.buildValidators(f)
@@ -210,7 +209,7 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (fields: CertificateField[]) => {
           this.certificateFields = fields;
-          this.buildForm(this.certificateFields);
+          this.buildForm(fields);
         },
         error: (error) => {
           console.error(

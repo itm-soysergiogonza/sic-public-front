@@ -42,13 +42,11 @@ export class CertificatesService {
     );
   }
 
-  getCertificateParametersByType(id: number): Observable<CertificateField[]> {
-    const params: HttpParams = new HttpParams().set("id", id.toString());
+  getCertificateParametersByType(
+    certificateTypeId: number
+  ): Observable<CertificateField[]> {
     return this._http.get<CertificateField[]>(
-      `${this._API_URL}/api/certificate/parameter`,
-      {
-        params,
-      }
+      `${this._API_URL}/api/certificate/parameter/certificate-type/${certificateTypeId}`
     );
   }
 
