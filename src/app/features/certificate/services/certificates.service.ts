@@ -43,4 +43,10 @@ export class CertificatesService {
       },
     );
   }
+
+  generateCertificate(data: any): Observable<Blob> {
+    return this._http.post(`${this._API_URL}/api/certificate/generate`, data, {
+      responseType: 'blob',
+    });
+  }
 }

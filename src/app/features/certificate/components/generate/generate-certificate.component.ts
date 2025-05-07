@@ -170,7 +170,26 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
         control?.markAsTouched();
       }
     } else {
+      this.downloadCertificate();
       this.showModal = true;
     }
+  }
+
+  downloadCertificate(): void {
+    const request = {
+      certificateTypeId: this.selectedCertificateType?.id,
+      parameters: this.certificateForm.getRawValue(),
+    };
+
+    this._certificationService
+      .generateCertificate(request)
+      .subscribe((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'certificado.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      });
   }
 }
