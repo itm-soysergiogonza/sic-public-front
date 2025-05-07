@@ -141,7 +141,7 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
               switchMap((parentValue) =>
                 this._certificationService
                   .fetchOptions(f.id, {
-                    parameters: { [f.dependsOn!]: parentValue },
+                    parameters: this.certificateForm.getRawValue(),
                   })
                   .pipe(catchError(() => of<FieldOption[]>([])))
               )
@@ -166,7 +166,7 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
                 }
                 return this._certificationService
                   .fetchOptions(f.id, {
-                    parameters: { [f.dependsOn!]: searchTerm },
+                    parameters: this.certificateForm.getRawValue(),
                   })
                   .pipe(
                     // esto evita que un error corte la suscripción
