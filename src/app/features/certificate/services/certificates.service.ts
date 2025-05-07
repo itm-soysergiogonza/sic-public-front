@@ -1,14 +1,15 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { environment } from '@environments/environment';
+import { HttpClient, HttpParams } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { environment } from "@environments/environment";
 import {
   CertificateField,
   CertificateType,
-} from '@shared/models/interfaces/form-field.interface';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+  FieldOption,
+} from "@shared/models/interfaces/form-field.interface";
+import { BehaviorSubject, Observable, tap } from "rxjs";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class CertificatesService {
   private readonly _API_URL = environment.API_URL;
@@ -26,7 +27,7 @@ export class CertificatesService {
       .pipe(tap((types) => this._certificateTypes.next(types)))
       .subscribe({
         error: (error) =>
-          console.error('Error fetching certificate types:', error),
+          console.error("Error fetching certificate types:", error),
       });
   }
 
@@ -34,19 +35,26 @@ export class CertificatesService {
     return this.certificateTypes$;
   }
 
+  fetchOptions(parameterId: number, data: any): Observable<FieldOption[]> {
+    return this._http.post<FieldOption[]>(
+      `${this._API_URL}/api/certificate/parameter/${parameterId}/options`,
+      data
+    );
+  }
+
   getCertificateParametersByType(id: number): Observable<CertificateField[]> {
-    const params: HttpParams = new HttpParams().set('id', id.toString());
+    const params: HttpParams = new HttpParams().set("id", id.toString());
     return this._http.get<CertificateField[]>(
       `${this._API_URL}/api/certificate/parameter`,
       {
         params,
-      },
+      }
     );
   }
 
   generateCertificate(data: any): Observable<Blob> {
     return this._http.post(`${this._API_URL}/api/certificate/generate`, data, {
-      responseType: 'blob',
+      responseType: "blob",
     });
   }
 }

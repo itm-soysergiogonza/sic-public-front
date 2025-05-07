@@ -1,31 +1,40 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from "@angular/common";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import {
   FormBuilder,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
   Validators,
-} from '@angular/forms';
-import { CertificatesService } from '@features/certificate/services/certificates.service';
-import { NgSelectModule } from '@ng-select/ng-select';
-import { InputFieldComponent } from '@shared/components/input-field/input-field.component';
-import { ModalConfirmComponent } from '@shared/components/modal-confirm/modal-confirm.component';
-import { SelectInputComponent } from '@shared/components/select-input/select-input.component';
+} from "@angular/forms";
+import { CertificatesService } from "@features/certificate/services/certificates.service";
+import { NgSelectModule } from "@ng-select/ng-select";
+import { InputFieldComponent } from "@shared/components/input-field/input-field.component";
+import { ModalConfirmComponent } from "@shared/components/modal-confirm/modal-confirm.component";
+import { SelectInputComponent } from "@shared/components/select-input/select-input.component";
 import {
   CertificateField,
   CertificateType,
   CertificateTypeEvent,
-} from '@shared/models/interfaces/form-field.interface';
-import { MessageService } from 'primeng/api';
-import { AvatarModule } from 'primeng/avatar';
-import { ButtonModule } from 'primeng/button';
-import { RippleModule } from 'primeng/ripple';
-import { ToastModule } from 'primeng/toast';
-import { Subject, takeUntil } from 'rxjs';
+  FieldOption,
+} from "@shared/models/interfaces/form-field.interface";
+import { MessageService } from "primeng/api";
+import { AvatarModule } from "primeng/avatar";
+import { ButtonModule } from "primeng/button";
+import { RippleModule } from "primeng/ripple";
+import { ToastModule } from "primeng/toast";
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  Subject,
+  switchMap,
+  takeUntil,
+} from "rxjs";
 
 @Component({
-  selector: 'app-generate-certificate',
+  selector: "app-generate-certificate",
   standalone: true,
   imports: [
     CommonModule,
@@ -41,7 +50,7 @@ import { Subject, takeUntil } from 'rxjs';
     AvatarModule,
   ],
   providers: [MessageService],
-  templateUrl: './generate-certificate.component.html',
+  templateUrl: "./generate-certificate.component.html",
 })
 export class GenerateCertificateComponent implements OnInit, OnDestroy {
   certificateForm: FormGroup;
@@ -49,18 +58,17 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
   certificateTypes: CertificateType[] = [];
   certificateTypesOptions: CertificateTypeEvent[] = [];
   certificateFields: CertificateField[] = [];
-  filteredFields: CertificateField[] = [];
   isLoading = false;
   errorMessage: string | null = null;
   showModal = false;
 
-  email = 'john.connor@itm.edu.co';
+  email = "john.connor@itm.edu.co";
 
   private _destroy$ = new Subject<void>();
 
   constructor(
     private _fb: FormBuilder,
-    private _certificationService: CertificatesService,
+    private _certificationService: CertificatesService
   ) {
     this.certificateForm = this._fb.group({});
   }
@@ -80,7 +88,7 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
 
           if (this.selectedCertificateType) {
             const currentType = types.find(
-              (t) => t.id === this.selectedCertificateType?.id,
+              (t) => t.id === this.selectedCertificateType?.id
             );
             if (currentType) {
               this.onCertificateTypeChange({
@@ -92,8 +100,8 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.isLoading = false;
-          this.errorMessage = 'Error al cargar los tipos de certificados';
-          console.error('Error al cargar los tipos de certificados:', error);
+          this.errorMessage = "Error al cargar los tipos de certificados";
+          console.error("Error al cargar los tipos de certificados:", error);
         },
       });
   }
@@ -103,41 +111,95 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
     this._destroy$.complete();
   }
 
-  private _updateFilteredFields() {
-    if (!this.selectedCertificateType) return;
-
-    this.filteredFields = this.certificateFields.filter(
-      (field) => field.certificateType.id === this.selectedCertificateType?.id,
-    );
-
-    const group: { [key: string]: unknown[] | [string, Validators[]] } = {};
-
-    for (const field of this.filteredFields) {
-      const currentValue = this.certificateForm.get(field.name)?.value;
-
-      if (field.type === 'DATE_RANGE') {
-        const startValue = this.certificateForm.get(
-          `${field.name}_start`,
-        )?.value;
-        const endValue = this.certificateForm.get(`${field.name}_end`)?.value;
-
-        group[`${field.name}_start`] = [
-          startValue || '',
-          field.required ? [Validators.required] : [],
-        ];
-        group[`${field.name}_end`] = [
-          endValue || '',
-          field.required ? [Validators.required] : [],
-        ];
-      } else {
-        group[field.name] = [
-          currentValue || '',
-          field.required ? [Validators.required] : [],
-        ];
-      }
-    }
+  private buildForm(fields: CertificateField[]) {
+    const group: Record<string, any> = {};
+    fields.forEach((f) => {
+      // … tu creación de controles (igual que antes)
+      group[f.name] = this._fb.control(
+        f.type === "SELECT_MULTIPLE" ? [] : null,
+        this.buildValidators(f)
+      );
+    });
 
     this.certificateForm = this._fb.group(group);
+
+    fields.forEach((f) => {
+      if (f.dataSource !== "SQL") return;
+      const childControl = this.certificateForm.get(f.name)!;
+
+      if (f.dependsOn) {
+        const parentControl = this.certificateForm.get(f.dependsOn)!;
+        const parentField = fields.find((x) => x.name === f.dependsOn)!;
+
+        if (
+          parentField.type === "SELECT_MULTIPLE" ||
+          parentField.type === "SELECT_SINGLE"
+        ) {
+          // dropdown padre
+          parentControl.valueChanges
+            .pipe(
+              // opcional: filter para valores no válidos
+              switchMap((parentValue) =>
+                this._certificationService
+                  .fetchOptions(f.id, {
+                    parameters: { [f.dependsOn!]: parentValue },
+                  })
+                  .pipe(catchError(() => of<FieldOption[]>([])))
+              )
+            )
+            .subscribe((opts) => {
+              f.options = [...opts];
+              childControl.reset();
+              opts.length ? childControl.enable() : childControl.disable();
+            });
+        } else {
+          // campo de texto padre
+          parentControl.valueChanges
+            .pipe(
+              debounceTime(500),
+              distinctUntilChanged(),
+              switchMap((searchTerm: string) => {
+                // si quieres ignorar búsquedas vacías:
+                if (!searchTerm) {
+                  childControl.reset();
+                  childControl.disable();
+                  return of<FieldOption[]>([]);
+                }
+                return this._certificationService
+                  .fetchOptions(f.id, {
+                    parameters: { [f.dependsOn!]: searchTerm },
+                  })
+                  .pipe(
+                    // esto evita que un error corte la suscripción
+                    catchError((_) => of<FieldOption[]>([]))
+                  );
+              })
+            )
+            .subscribe((opts) => {
+              f.options = [...opts];
+              childControl.reset();
+              opts.length ? childControl.enable() : childControl.disable();
+            });
+        }
+      } else {
+        // carga inicial cuando no depende de nada
+        this._certificationService
+          .fetchOptions(f.id, { parameters: null })
+          .pipe(catchError(() => of<FieldOption[]>([])))
+          .subscribe((opts) => (f.options = opts));
+      }
+    });
+  }
+
+  private buildValidators(f: CertificateField) {
+    const v: any[] = [];
+    if (f.required) v.push(Validators.required);
+    if (f.type === "EMAIL") v.push(Validators.email);
+    if (f.minLength != null) v.push(Validators.minLength(f.minLength));
+    if (f.maxLength != null) v.push(Validators.maxLength(f.maxLength));
+    if (f.minValue != null) v.push(Validators.min(f.minValue));
+    if (f.maxValue != null) v.push(Validators.max(f.maxValue));
+    return v;
   }
 
   onCertificateTypeChange(event: CertificateTypeEvent | null): void {
@@ -148,12 +210,12 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (fields: CertificateField[]) => {
           this.certificateFields = fields;
-          this._updateFilteredFields();
+          this.buildForm(this.certificateFields);
         },
         error: (error) => {
           console.error(
-            'Error al cargar los parámetros del certificado:',
-            error,
+            "Error al cargar los parámetros del certificado:",
+            error
           );
         },
       });
@@ -185,9 +247,9 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
       .generateCertificate(request)
       .subscribe((blob) => {
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = 'certificado.pdf';
+        a.download = "certificado.pdf";
         a.click();
         window.URL.revokeObjectURL(url);
       });
