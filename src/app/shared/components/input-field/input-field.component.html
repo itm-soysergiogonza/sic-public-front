@@ -16,8 +16,10 @@
 
   <div class="relative">
     @if (field.type === 'TEXT') {
-    <label [for]="field.id">
+    <label nbFormFieldLabel [for]="field.id">
       <input
+        [class.bg-gray-100]="isGenerating"
+        [class.cursor-not-allowed]="isGenerating"
         [id]="field.id"
         [name]="field.name"
         [type]="getFieldType()"
@@ -27,8 +29,10 @@
       />
     </label>
     } @if (field.type === 'EMAIL') {
-    <label [for]="field.id">
+    <label nbFormFieldLabel [for]="field.id">
       <input
+        [class.bg-gray-100]="isGenerating"
+        [class.cursor-not-allowed]="isGenerating"
         autocomplete="email"
         [id]="field.id"
         [name]="field.name"
@@ -39,9 +43,13 @@
       />
     </label>
     } @if (field.type === 'NUMBER') {
-    <label>
+    <label nbFormFieldLabel [for]="field.id">
       <input
-        type="text"
+        [class.bg-gray-100]="isGenerating"
+        [class.cursor-not-allowed]="isGenerating"
+        [id]="field.id"
+        [name]="field.name"
+        [type]="getFieldType()"
         [formControlName]="field.name"
         pattern="[0-9]*"
         [placeholder]="field.placeholder || ''"
@@ -49,10 +57,13 @@
       />
     </label>
     } @if (field.type === 'DATE') {
-    <label [for]="field.id">
+    <label nbFormFieldLabel [for]="field.id">
       <input
+        [class.bg-gray-100]="isGenerating"
+        [class.cursor-not-allowed]="isGenerating"
         [id]="field.id"
-        type="date"
+        [name]="field.name"
+        [type]="getFieldType()"
         [formControlName]="field.name"
         [placeholder]="field.placeholder || ''"
         class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-primary-300 placeholder:text-gray-400 dark:text-black"
@@ -60,21 +71,27 @@
     </label>
     } @if (field.type === 'DATE_RANGE') {
     <div class="flex gap-2">
-      <label [for]="field.id">
+      <label nbFormFieldLabel [for]="field.id">
         <span>Desde</span>
         <input
-          type="date"
+          [class.bg-gray-100]="isGenerating"
+          [class.cursor-not-allowed]="isGenerating"
           [id]="field.id"
+          [name]="field.name"
+          [type]="getFieldType()"
           [formControlName]="field.name + '_start'"
           [placeholder]="field.placeholder || ''"
           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-primary-300 placeholder:text-gray-400 dark:text-black"
         />
       </label>
-      <label [for]="field.id">
+      <label nbFormFieldLabel [for]="field.id">
         <span>Hasta</span>
         <input
-          type="date"
+          [class.bg-gray-100]="isGenerating"
+          [class.cursor-not-allowed]="isGenerating"
           [id]="field.id"
+          [name]="field.name"
+          [type]="getFieldType()"
           [formControlName]="field.name + '_end'"
           [placeholder]="field.placeholder || ''"
           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 hover:border-primary-300 placeholder:text-gray-400 dark:text-black"

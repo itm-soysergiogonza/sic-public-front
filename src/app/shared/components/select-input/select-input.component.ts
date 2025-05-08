@@ -1,27 +1,27 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule } from "@angular/common";
 import {
   Component,
   EventEmitter,
   Input,
   Output,
   forwardRef,
-} from '@angular/core';
+} from "@angular/core";
 import {
   ControlValueAccessor,
   FormsModule,
   NG_VALUE_ACCESSOR,
-} from '@angular/forms';
-import { NgSelectModule } from '@ng-select/ng-select';
+} from "@angular/forms";
+import { NgSelectModule } from "@ng-select/ng-select";
 import {
   CertificateType,
   CertificateTypeEvent,
   CompareWithCertificateType,
-} from '@shared/models/interfaces/form-field.interface';
+} from "@shared/models/interfaces/form-field.interface";
 
 @Component({
-  selector: 'app-select-input',
+  selector: "app-select-input",
   imports: [CommonModule, FormsModule, NgSelectModule],
-  templateUrl: './select-input.component.html',
+  templateUrl: "./select-input.component.html",
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -31,11 +31,12 @@ import {
   ],
 })
 export class SelectInputComponent implements ControlValueAccessor {
-  @Input() label = '';
-  @Input() placeholder = 'Seleccione una opción';
+  @Input() label = "";
+  @Input() placeholder = "Seleccione una opción";
   @Input() options: CertificateTypeEvent[] = [];
   @Input() clearable = false;
   @Input() required = false;
+  @Input() disabled = false;
 
   @Output() selectedChange: EventEmitter<CertificateTypeEvent | null> =
     new EventEmitter<CertificateTypeEvent | null>();
@@ -43,14 +44,13 @@ export class SelectInputComponent implements ControlValueAccessor {
   @Output() closed: EventEmitter<void> = new EventEmitter<void>();
 
   selectedValue: null | CertificateTypeEvent = null;
-  isDisabled = false;
   private _propagateChange: (value: CertificateTypeEvent | null) => void =
     (): void => {};
   private _propagateTouch: () => void = (): void => {};
 
   compareWith: CompareWithCertificateType = (
     item: CertificateTypeEvent,
-    selected: CertificateType,
+    selected: CertificateType
   ): boolean => {
     return item?.value?.id === selected?.id;
   };
@@ -68,7 +68,7 @@ export class SelectInputComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.isDisabled = isDisabled;
+    this.disabled = isDisabled;
   }
 
   onSelectionChange(event: CertificateTypeEvent | null): void {

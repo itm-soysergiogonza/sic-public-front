@@ -59,6 +59,8 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
   certificateTypesOptions: CertificateTypeEvent[] = [];
   certificateFields: CertificateField[] = [];
   isLoading = false;
+  isGenerating = false;
+
   errorMessage: string | null = null;
   showModal = false;
 
@@ -123,71 +125,58 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
     this.certificateForm = this._fb.group(group);
 
     fields.forEach((f) => {
-      if (f.dataSource !== "SQL") return;
-      const childControl = this.certificateForm.get(f.name)!;
-
-      if (f.dependsOn) {
-        const parentControl = this.certificateForm.get(f.dependsOn)!;
-        const parentField = fields.find((x) => x.name === f.dependsOn)!;
-
-        if (
-          parentField.type === "SELECT_MULTIPLE" ||
-          parentField.type === "SELECT_SINGLE"
-        ) {
-          // dropdown padre
-          parentControl.valueChanges
-            .pipe(
-              // opcional: filter para valores no válidos
-              switchMap((parentValue) =>
-                this._certificationService
-                  .fetchOptions(f.id, {
-                    parameters: this.certificateForm.getRawValue(),
-                  })
-                  .pipe(catchError(() => of<FieldOption[]>([])))
-              )
-            )
-            .subscribe((opts) => {
-              f.options = [...opts];
-              childControl.reset();
-              opts.length ? childControl.enable() : childControl.disable();
-            });
-        } else {
-          // campo de texto padre
-          parentControl.valueChanges
-            .pipe(
-              debounceTime(500),
-              distinctUntilChanged(),
-              switchMap((searchTerm: string) => {
-                // si quieres ignorar búsquedas vacías:
-                if (!searchTerm) {
-                  childControl.reset();
-                  childControl.disable();
-                  return of<FieldOption[]>([]);
-                }
-                return this._certificationService
-                  .fetchOptions(f.id, {
-                    parameters: this.certificateForm.getRawValue(),
-                  })
-                  .pipe(
-                    // esto evita que un error corte la suscripción
-                    catchError((_) => of<FieldOption[]>([]))
-                  );
-              })
-            )
-            .subscribe((opts) => {
-              f.options = [...opts];
-              childControl.reset();
-              opts.length ? childControl.enable() : childControl.disable();
-            });
-        }
-      } else {
-        // carga inicial cuando no depende de nada
+      const control = this.certificateForm.get(f.name)!;
+      if (f.dataSource === "SQL" && !f.dependsOn && this.isSelectType(f.type)) {
         this._certificationService
           .fetchOptions(f.id, { parameters: null })
           .pipe(catchError(() => of<FieldOption[]>([])))
           .subscribe((opts) => (f.options = opts));
+        return;
+      }
+      if (f.dependsOn) {
+        const parentControl = this.certificateForm.get(f.dependsOn)!;
+        const parentField = fields.find((x) => x.name === f.dependsOn)!;
+
+        parentControl.valueChanges
+          .pipe(
+            debounceTime(300),
+            distinctUntilChanged(),
+            switchMap((_) => {
+              const parentValue = parentControl.value;
+              if (!parentValue) {
+                control.reset();
+                control.disable();
+                return of<FieldOption[]>([]);
+              }
+              if (f.dataSource === "SQL" && this.isSelectType(f.type)) {
+                return this._certificationService
+                  .fetchOptions(f.id, {
+                    parameters: this.certificateForm.getRawValue(),
+                  })
+                  .pipe(catchError(() => of<FieldOption[]>([])));
+              }
+              control.reset();
+              control.enable();
+              return of<FieldOption[]>([]);
+            })
+          )
+          .subscribe((opts) => {
+            if (this.isSelectType(f.type)) {
+              f.options = [...opts];
+              if (opts.length) {
+                control.enable();
+              } else {
+                control.reset();
+                control.disable();
+              }
+            }
+          });
       }
     });
+  }
+
+  private isSelectType(type: string): boolean {
+    return type === "SELECT_SINGLE" || type === "SELECT_MULTIPLE";
   }
 
   private buildValidators(f: CertificateField) {
@@ -231,9 +220,25 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
         control?.markAsTouched();
       }
     } else {
+      this.blockFormDuringSubmit();
       this.downloadCertificate();
       this.showModal = true;
     }
+  }
+
+  private blockFormDuringSubmit(): void {
+    this.isGenerating = true;
+    Object.values(this.certificateForm.controls).forEach((control) => {
+      control.markAsTouched();
+      control.disable({ emitEvent: false });
+    });
+  }
+
+  private unblockForm(): void {
+    Object.values(this.certificateForm.controls).forEach((control) => {
+      control.enable({ emitEvent: false });
+    });
+    this.isGenerating = false;
   }
 
   downloadCertificate(): void {
@@ -242,15 +247,19 @@ export class GenerateCertificateComponent implements OnInit, OnDestroy {
       parameters: this.certificateForm.getRawValue(),
     };
 
-    this._certificationService
-      .generateCertificate(request)
-      .subscribe((blob) => {
+    this._certificationService.generateCertificate(request).subscribe({
+      next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
         a.download = "certificado.pdf";
         a.click();
         window.URL.revokeObjectURL(url);
-      });
+        this.unblockForm();
+      },
+      error: () => {
+        this.unblockForm();
+      },
+    });
   }
 }

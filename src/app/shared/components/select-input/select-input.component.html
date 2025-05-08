@@ -1,28 +1,31 @@
 <div class="form-group">
   @if (label) {
-      <i class="bi bi-file-earmark-text text-primary mr-2 mb-2 flex items-center"></i>
-      <label class="text-sm font-medium text-gray-700">
-        {{ label }}
-        @if (required) {
-          <span class="text-red-500 ml-1">*</span>
-        }
+  <i
+    class="bi bi-file-earmark-text text-primary mr-2 mb-2 flex items-center"
+  ></i>
+  <label class="text-sm font-medium text-gray-700">
+    {{ label }}
+    @if (required) {
+    <span class="text-red-500 ml-1">*</span>
+    }
 
-        <ng-select
-          [(ngModel)]="selectedValue"
-          [items]="options"
-          [clearable]="clearable"
-          [required]="required"
-          [searchable]="false"
-          [compareWith]="compareWith"
-          bindLabel="label"
-          [placeholder]="placeholder"
-          (change)="onSelectionChange($event)"
-          (open)="onOpen()"
-          (close)="onClose()"
-          [labelForId]="label"
-          class="custom-select">
-        </ng-select>
-      </label>
+    <ng-select
+      [(ngModel)]="selectedValue"
+      [items]="options"
+      [clearable]="clearable"
+      [required]="required"
+      [searchable]="true"
+      [disabled]="disabled"
+      [compareWith]="compareWith"
+      bindLabel="label"
+      [placeholder]="placeholder"
+      (change)="onSelectionChange($event)"
+      (open)="onOpen()"
+      (close)="onClose()"
+      [labelForId]="label"
+      class="custom-select"
+    >
+    </ng-select>
+  </label>
   }
-
 </div>
