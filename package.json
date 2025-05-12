@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "network": "ng run sic-public-front:serve --host"
   },
   "private": true,
   "dependencies": {
