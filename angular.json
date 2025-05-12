@@ -75,11 +75,11 @@
             "production": {
               "buildTarget": "sic-public-front:build:production"
             },
-            "development": {
-              "buildTarget": "sic-public-front:build:development"
+            "dev": {
+              "buildTarget": "sic-public-front:build:dev"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "dev"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"
